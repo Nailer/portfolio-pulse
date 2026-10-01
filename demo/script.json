@@ -1,0 +1,141 @@
+{
+  "voice": "am_michael",
+  "speed": 1.1,
+  "sentenceGap": 0.35,
+  "sceneLead": 0.4,
+  "sceneTail": 0.8,
+  "scenes": [
+    {
+      "id": "intro",
+      "kind": "slide",
+      "lines": [
+        "This is Portfolio Pulse: a live crypto portfolio dashboard, built for the Build with CoinMarketCap API Hackathon, in the Markets and Trading Tools track.",
+        "In the next few minutes, I'll show you what it does, how it works under the hood, and what we learned about the CMC API along the way."
+      ]
+    },
+    {
+      "id": "why",
+      "kind": "slide",
+      "lines": [
+        "Before writing any code, we read through forty-one existing hackathon submissions.",
+        "The Real World Assets and AI Agents tracks were packed with near-identical risk-score tools.",
+        "But nobody had built the plain portfolio and P and L tracker that the Markets and Trading Tools track explicitly asked for.",
+        "So that's what Portfolio Pulse is. Enter your holdings, and instantly see what you own, how it moved, and how risky it is."
+      ]
+    },
+    {
+      "id": "app-overview",
+      "kind": "app",
+      "lines": [
+        "Here's the app.",
+        "It opens with a sample portfolio: a quarter of a Bitcoin, three Ether, forty Solana, and a hundred and fifty Chainlink.",
+        "As soon as the page loads, it fetches quotes from CoinMarketCap, and the whole dashboard fills in."
+      ]
+    },
+    {
+      "id": "app-add",
+      "kind": "app",
+      "lines": [
+        "Adding a holding is just a symbol and a quantity.",
+        "Let's add some Ondo, a real-world-asset token, and some Dogecoin.",
+        "Each holding shows up as a chip you can remove with one click, and every number on the page recalculates instantly.",
+        "Behind the scenes, only the new symbols are fetched. Prices we already have are reused, which keeps us well inside the API's rate limits."
+      ]
+    },
+    {
+      "id": "app-stats",
+      "kind": "app",
+      "lines": [
+        "Across the top are four headline numbers.",
+        "Total portfolio value, and the twenty-four hour profit and loss, in dollars and in percent.",
+        "Then two risk scores: holding concentration, and sector concentration.",
+        "Both use the Herfindahl-Hirschman Index, the sum of squared portfolio weights. It runs from near zero for a well-spread book, to one for a single asset, and we translate it into a plain-English label: diversified, moderate, or concentrated."
+      ]
+    },
+    {
+      "id": "app-allocation",
+      "kind": "app",
+      "lines": [
+        "Below that, the allocation donut shows how your value is split across holdings.",
+        "Sector exposure groups those holdings by what they actually are: layer ones, oracles, meme coins, real-world assets.",
+        "It's driven by the tags CoinMarketCap attaches to every asset, mapped through a curated list of sector-defining tags."
+      ]
+    },
+    {
+      "id": "app-heatmap",
+      "kind": "app",
+      "lines": [
+        "This is the most interesting part: a momentum correlation heatmap.",
+        "Teal cells are pairs of assets that have been moving together. Rose cells are moving in opposite directions.",
+        "If everything you hold glows bright teal, you're less diversified than your coin count suggests."
+      ]
+    },
+    {
+      "id": "app-table",
+      "kind": "app",
+      "lines": [
+        "The holdings table lists every asset with its sector, price, twenty-four hour change, value, and portfolio weight.",
+        "At the bottom, an API evidence panel shows the exact request the app made, and the raw response it got back, so anyone reviewing the project can verify where the data comes from.",
+        "And the refresh button forces a full refetch whenever you want fresh prices."
+      ]
+    },
+    {
+      "id": "fingerprint",
+      "kind": "slide",
+      "lines": [
+        "So how does that heatmap work without historical data?",
+        "Real return correlation normally needs a paid historical price endpoint.",
+        "But every quotes call already returns percent change over six windows: one hour, twenty-four hours, and seven, thirty, sixty, and ninety days.",
+        "We treat those six numbers as each asset's momentum fingerprint, and compute the cosine similarity between fingerprints.",
+        "It's not identical to price-series correlation, but it's directionally meaningful, and it costs zero extra API calls."
+      ]
+    },
+    {
+      "id": "architecture",
+      "kind": "slide",
+      "lines": [
+        "Under the hood, it's Next.js sixteen with the App Router, and Tailwind four.",
+        "The browser never calls CoinMarketCap directly. The Pro API blocks browser requests to protect keys, so every call goes through a server-side route at slash API slash quotes.",
+        "That route calls exactly one endpoint: version three, cryptocurrency, quotes latest.",
+        "Everything else, allocation, P and L, sectors, concentration, and correlation, is computed in the browser from that single response."
+      ]
+    },
+    {
+      "id": "keyless",
+      "kind": "slide",
+      "lines": [
+        "By default, the app runs on CMC's no-signup Keyless Public API, so anyone can clone it and run it with zero setup.",
+        "Set a CMC API key environment variable, and the exact same code switches to the authenticated Pro API automatically.",
+        "And because the keyless tier shares a rate-limit pool, any request that gets a four twenty-nine is retried with exponential backoff: one, two, then four seconds."
+      ]
+    },
+    {
+      "id": "bug",
+      "kind": "slide",
+      "lines": [
+        "Here's a real bug we hit.",
+        "Asking the API for the symbol B T C doesn't return just Bitcoin. It returns every token that shares that ticker. We counted thirteen, including things like Bitcoin Gold AI, and Bridged BTC.",
+        "Our first version silently displayed one of those impersonators as if it were real Bitcoin.",
+        "The fix: pick the canonical match ourselves. Active coins first, then the lowest CMC rank, then the highest market cap."
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "slide",
+      "lines": [
+        "Our feedback for the CMC team.",
+        "A single, free, keyless endpoint made a genuinely useful dashboard possible. That's a very low floor to build something real.",
+        "Ticker collisions are an easy trap, and deserve a documented disambiguation recipe in the quick-start guide.",
+        "And the keyless rate limit pushed us toward incremental fetching and backoff, which turned out to be good design anyway."
+      ]
+    },
+    {
+      "id": "outro",
+      "kind": "slide",
+      "lines": [
+        "To try it yourself, clone the repo, run npm install, then npm run dev, and open localhost three thousand. No API key needed.",
+        "That's Portfolio Pulse. Thanks for watching."
+      ]
+    }
+  ]
+}

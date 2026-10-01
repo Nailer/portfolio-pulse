@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Portfolio Pulse demo slides</title>
+<link href="build/fonts/fonts.css" rel="stylesheet" /><!-- ./fetch-fonts.sh -->
+<style>
+  :root {
+    --bg: #0b0d10; --fg: #f1f3f4; --muted: #a6adb4; --subtle: #676f77;
+    --panel: #14171b; --input: #0f1215; --line: #23272c; --track: #1b1f24;
+    --accent: #5eead4; --indigo: #818cf8; --pos: #4ade80; --danger: #fb7185; --amber: #facc15;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1280px; height: 720px; overflow: hidden; background: var(--bg); color: var(--fg);
+    font-family: Geist, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
+  .mono { font-family: "Geist Mono", ui-monospace, monospace; }
+  body::before { content: ""; position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(900px 500px at 85% -10%, rgba(94,234,212,.10), transparent 60%),
+                radial-gradient(700px 500px at -10% 110%, rgba(129,140,248,.10), transparent 60%); }
+  .slide { display: none; position: absolute; inset: 0; padding: 56px 88px 130px; flex-direction: column; justify-content: center; }
+  .slide.active { display: flex; }
+  .eyebrow { font: 500 13px "Geist Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); margin-bottom: 14px; }
+  h1 { font-size: 44px; font-weight: 600; letter-spacing: -.02em; line-height: 1.1; }
+  h1 .dim { color: var(--subtle); font-weight: 400; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 22px 24px; }
+  .row { display: flex; gap: 20px; }
+  .col { display: flex; flex-direction: column; gap: 14px; }
+  .muted { color: var(--muted); } .subtle { color: var(--subtle); }
+  .accent { color: var(--accent); } .danger { color: var(--danger); } .pos { color: var(--pos); }
+  .pill { display: inline-flex; align-items: center; gap: 8px; border: 1px solid var(--line); background: var(--panel);
+    border-radius: 999px; padding: 7px 14px; font: 13px "Geist Mono", monospace; color: var(--muted); }
+
+  /* entrance animations, delayed to the narration cue they belong to */
+  [data-cue] { opacity: 0; transform: translateY(14px); }
+  .play [data-cue] { animation: rise .7s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: var(--d, 0s); }
+  @keyframes rise { to { opacity: 1; transform: none; } }
+  .play .grow { animation: grow 1.1s cubic-bezier(.2,.7,.2,1) forwards; animation-delay: var(--d, 0s); transform-origin: left; transform: scaleX(0); }
+  @keyframes grow { to { transform: scaleX(1); } }
+  .play .strike::after { content: ""; position: absolute; left: 18px; right: 18px; top: 50%; height: 2px; background: var(--danger);
+    transform: scaleX(0); transform-origin: left; animation: grow .6s ease-out forwards; animation-delay: var(--sd, 0s); }
+
+  /* intro / outro */
+  .center { align-items: center; justify-content: center; text-align: center; padding-bottom: 100px; }
+  .logo { width: 150px; height: 150px; border-radius: 34px; box-shadow: 0 30px 80px rgba(94,234,212,.12); }
+  .title { font-size: 78px; font-weight: 600; letter-spacing: -.035em; margin-top: 28px;
+    background: linear-gradient(90deg, #5eead4, #7dd3fc 55%, #818cf8); -webkit-background-clip: text; color: transparent; }
+  .tag { font-size: 22px; color: var(--muted); margin-top: 12px; font-weight: 400; }
+
+  /* why */
+  .big { font-size: 120px; font-weight: 600; letter-spacing: -.04em; line-height: 1; color: var(--accent); }
+  .track { position: relative; font-size: 19px; padding: 18px 22px; border-radius: 14px; background: var(--panel); border: 1px solid var(--line); }
+  .track small { display: block; font: 12px "Geist Mono", monospace; color: var(--subtle); margin-top: 4px; }
+  .track.win { border-color: rgba(94,234,212,.55); box-shadow: 0 0 0 6px rgba(94,234,212,.08); }
+
+  /* fingerprint */
+  table.fp { border-collapse: separate; border-spacing: 6px; font: 15px "Geist Mono", monospace; }
+  table.fp th { color: var(--subtle); font-weight: 400; font-size: 12px; padding-bottom: 2px; }
+  table.fp td.v { width: 92px; height: 54px; text-align: center; border-radius: 10px; background: var(--input); border: 1px solid var(--line); }
+  table.fp td.sym { padding-right: 12px; text-align: right; color: var(--fg); font-weight: 500; }
+  .formula { font: 28px "Geist Mono", monospace; letter-spacing: -.01em; }
+  .score { font-size: 64px; font-weight: 600; color: var(--accent); letter-spacing: -.03em; }
+
+  /* architecture */
+  .node { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px 22px; width: 296px; flex: none; }
+  .node h3 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  .node .k { font: 12px "Geist Mono", monospace; color: var(--accent); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+  .node ul { list-style: none; font: 13.5px "Geist Mono", monospace; color: var(--muted); line-height: 1.75; }
+  .node ul li::before { content: "› "; color: var(--subtle); }
+  .arrow { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+    font: 12px "Geist Mono", monospace; color: var(--subtle); white-space: nowrap; padding: 0 12px; }
+  .arrow .line { width: 100%; height: 2px; background: linear-gradient(90deg, var(--accent), var(--indigo)); position: relative; }
+  .arrow .line::after { content: ""; position: absolute; right: -2px; top: -5px; border: 6px solid transparent; border-left: 9px solid var(--indigo); }
+  .arrow .line.back { background: linear-gradient(270deg, var(--accent), var(--indigo)); }
+  .arrow .line.back::after { right: auto; left: -2px; border-left: 6px solid transparent; border-right: 9px solid var(--indigo); }
+
+  /* keyless */
+  .mode { flex: 1; }
+  .mode .url { font: 14px "Geist Mono", monospace; color: var(--accent); margin-top: 10px; word-break: break-all; }
+  .retry { display: flex; align-items: center; gap: 12px; font: 15px "Geist Mono", monospace; }
+  .retry .b { padding: 10px 14px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); }
+  .retry .b.err { color: var(--danger); border-color: rgba(251,113,133,.4); }
+  .retry .b.ok { color: var(--pos); border-color: rgba(74,222,128,.4); }
+  .retry .w { color: var(--subtle); }
+
+  /* bug */
+  .res { display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; border-radius: 10px;
+    background: var(--input); border: 1px solid var(--line); font: 14px "Geist Mono", monospace; }
+  .res .r { color: var(--subtle); font-size: 12px; }
+  .res.good { border-color: rgba(94,234,212,.6); background: rgba(94,234,212,.06); }
+  .res.bad { color: var(--muted); }
+  .step { display: flex; gap: 14px; align-items: center; font-size: 18px; }
+  .step .n { width: 32px; height: 32px; border-radius: 50%; background: rgba(94,234,212,.12); color: var(--accent);
+    display: grid; place-items: center; font: 600 14px "Geist Mono", monospace; flex: none; }
+  .step code { font: 15px "Geist Mono", monospace; color: var(--accent); }
+
+  /* feedback */
+  .fb { flex: 1; display: flex; flex-direction: column; gap: 12px; }
+  .fb .ic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+  .fb h3 { font-size: 20px; font-weight: 600; }
+  .fb p { font-size: 15.5px; color: var(--muted); line-height: 1.55; }
+
+  .code { background: var(--input); border: 1px solid var(--line); border-radius: 14px; padding: 18px 26px; text-align: left;
+    font: 18px "Geist Mono", monospace; line-height: 1.9; color: var(--fg); }
+  .code .p { color: var(--subtle); }
+</style>
+</head>
+<body>
+
+<!-- INTRO -->
+<section class="slide center" id="intro">
+  <img class="logo" src="../public/logo.png" alt="" data-cue="0" />
+  <div class="title" data-cue="0" style="--x:.15s">Portfolio Pulse</div>
+  <div class="tag" data-cue="0" style="--x:.3s">Live crypto portfolio value, risk &amp; momentum correlation</div>
+  <div class="row" style="margin-top:34px; gap:12px" data-cue="0" data-x="1.2">
+    <span class="pill">Build with CMC: API Hackathon</span>
+    <span class="pill"><span class="accent">●</span> Markets &amp; Trading Tools</span>
+  </div>
+  <div class="row" style="margin-top:14px; gap:12px" data-cue="1">
+    <span class="pill">What it does</span><span class="pill">How it works</span><span class="pill">What we learned</span>
+  </div>
+</section>
+
+<!-- WHY -->
+<section class="slide" id="why">
+  <div class="eyebrow" data-cue="0">Why this project</div>
+  <div class="row" style="gap:56px; align-items:center; margin-top:28px">
+    <div class="col" style="width:330px" data-cue="0">
+      <div class="big">41</div>
+      <div style="font-size:22px" class="muted">existing hackathon submissions reviewed before writing any code</div>
+    </div>
+    <div class="col" style="flex:1; gap:14px">
+      <div class="track strike" data-cue="1" style="--sd:1.4s">Real World Assets: “trust / risk score for a tokenized asset”<small>saturated · near-identical submissions</small></div>
+      <div class="track strike" data-cue="1" data-x=".3" style="--sd:1.8s">AI Agents &amp; Automation: “AI risk scorer”<small>saturated · near-identical submissions</small></div>
+      <div class="track win" data-cue="2">Markets &amp; Trading Tools: <b class="accent">portfolio &amp; P&amp;L tracker</b><small>explicitly invited by the track · nobody had built it</small></div>
+      <div class="row" style="gap:10px; margin-top:10px; flex-wrap:wrap" data-cue="3">
+        <span class="pill">holdings in</span><span class="pill accent">→</span>
+        <span class="pill">value</span><span class="pill">24h P&amp;L</span><span class="pill">sector exposure</span>
+        <span class="pill">concentration risk</span><span class="pill">momentum correlation</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FINGERPRINT -->
+<section class="slide" id="fingerprint">
+  <div class="eyebrow" data-cue="0">The interesting use of the API</div>
+  <h1 data-cue="0">Correlation <span class="dim">without historical data</span></h1>
+  <div class="row" style="margin-top:22px; gap:14px" data-cue="1">
+    <span class="pill"><span class="danger">✕</span> historical OHLCV: paid endpoint</span>
+    <span class="pill"><span class="pos">✓</span> quotes/latest: already returns 6 % change windows</span>
+  </div>
+  <div class="row" style="margin-top:30px; gap:56px; align-items:center">
+    <table class="fp" data-cue="2">
+      <thead><tr><th></th><th>1h</th><th>24h</th><th>7d</th><th>30d</th><th>60d</th><th>90d</th></tr></thead>
+      <tbody id="fp-body"></tbody>
+    </table>
+    <div class="col" style="gap:10px">
+      <div class="formula" data-cue="3">cos θ = <span class="accent">a·b</span> / (‖a‖ ‖b‖)</div>
+      <div class="row" style="align-items:baseline; gap:14px" data-cue="3" data-x="1.6">
+        <span class="muted mono" style="font-size:15px">ETH vs SOL</span><span class="score" id="fp-score"></span>
+      </div>
+      <div class="muted" style="font-size:16px; max-width:380px" data-cue="4">Directionally meaningful, and <b class="accent">zero</b> extra API calls.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ARCHITECTURE -->
+<section class="slide" id="architecture">
+  <div class="eyebrow" data-cue="0">Architecture</div>
+  <div class="row" style="gap:10px" data-cue="0">
+    <span class="pill">Next.js 16 · App Router</span><span class="pill">React 19</span><span class="pill">Tailwind 4</span><span class="pill">TypeScript</span><span class="pill">Vercel</span>
+  </div>
+  <div class="row" style="margin-top:44px; align-items:stretch; gap:0">
+    <div class="node" data-cue="1">
+      <div class="k">Browser</div><h3>PortfolioDashboard</h3>
+      <ul data-cue="3"><li>allocation &amp; weights</li><li>24h P&amp;L</li><li>sector exposure</li><li>HHI concentration</li><li>momentum correlation</li></ul>
+    </div>
+    <div class="arrow" data-cue="1" data-x=".6"><span>GET /api/quotes</span><div class="line"></div><div class="line back"></div><span>quotes JSON</span></div>
+    <div class="node" data-cue="1" data-x="1.6">
+      <div class="k">Server · route handler</div><h3>app/api/quotes</h3>
+      <ul><li>keeps the API key server-side</li><li>picks canonical ticker match</li><li>maps CMC tags → sector</li><li>429 retry + backoff</li></ul>
+    </div>
+    <div class="arrow" data-cue="2"><span>1 endpoint</span><div class="line"></div><div class="line back"></div><span>JSON</span></div>
+    <div class="node" data-cue="2" data-x=".4" style="width:250px">
+      <div class="k">CoinMarketCap</div><h3>quotes/latest</h3>
+      <ul><li class="accent">/v3/cryptocurrency/<br>&nbsp;&nbsp;quotes/latest</li><li>price, market cap</li><li>% change 1h → 90d</li><li>tags</li></ul>
+    </div>
+  </div>
+  <div class="pill" style="margin-top:26px; align-self:flex-start" data-cue="3" data-x="1.5"><span class="accent">1</span> API call → the whole dashboard, computed client-side</div>
+</section>
+
+<!-- KEYLESS -->
+<section class="slide" id="keyless">
+  <div class="eyebrow" data-cue="0">Zero-setup by default</div>
+  <h1 data-cue="0">Same code path, <span class="dim">two API tiers</span></h1>
+  <div class="row" style="margin-top:34px">
+    <div class="card mode" data-cue="0" data-x=".8">
+      <div class="mono subtle" style="font-size:13px">no env var</div>
+      <div style="font-size:24px; font-weight:600; margin-top:6px">Keyless Public API</div>
+      <div class="muted" style="margin-top:6px">No signup. Clone, <span class="mono">npm run dev</span>, done.</div>
+      <div class="url">pro-api.coinmarketcap.com/public-api</div>
+    </div>
+    <div class="card mode" data-cue="1" style="border-color:rgba(129,140,248,.5)">
+      <div class="mono subtle" style="font-size:13px">CMC_API_KEY=…</div>
+      <div style="font-size:24px; font-weight:600; margin-top:6px">Authenticated Pro API</div>
+      <div class="muted" style="margin-top:6px">Switches automatically. Higher limits.</div>
+      <div class="url" style="color:var(--indigo)">pro-api.coinmarketcap.com + X-CMC_PRO_API_KEY</div>
+    </div>
+  </div>
+  <div class="card" style="margin-top:22px" data-cue="2">
+    <div class="mono subtle" style="font-size:13px; margin-bottom:14px">exponential backoff on 429</div>
+    <div class="retry">
+      <span class="b err">429</span><span class="w">wait 1s →</span><span class="b err">429</span><span class="w">wait 2s →</span>
+      <span class="b err">429</span><span class="w">wait 4s →</span><span class="b ok">200 OK</span>
+    </div>
+  </div>
+</section>
+
+<!-- BUG -->
+<section class="slide" id="bug">
+  <div class="eyebrow danger" data-cue="0" style="color:var(--danger)">A real bug we hit &amp; fixed</div>
+  <div class="row" style="gap:48px; margin-top:10px; align-items:center">
+    <div class="col" style="flex:1.05; gap:8px">
+      <div class="mono muted" style="font-size:15px; margin-bottom:6px" data-cue="1">GET quotes/latest?<span class="accent">symbol=BTC</span> → <span class="danger">13 results</span></div>
+      <div class="res good" data-cue="1" data-x=".5"><span>Bitcoin</span><span class="r">rank #1 · active</span></div>
+      <div class="res bad" data-cue="1" data-x="2.6"><span>Bitcoin Gold AI</span><span class="r">rank — · impersonator</span></div>
+      <div class="res bad" data-cue="1" data-x="3.4"><span>Bridged BTC (NEAR Intents)</span><span class="r">rank — · bridged</span></div>
+      <div class="res bad subtle" data-cue="1" data-x="4.2"><span>+ 10 more tokens sharing the ticker</span><span class="r">…</span></div>
+      <div class="muted" style="font-size:16px; margin-top:10px" data-cue="2">v1 silently showed an <span class="danger">impersonator</span> as if it were real Bitcoin.</div>
+    </div>
+    <div class="col" style="flex:1; gap:18px; justify-content:center">
+      <div class="mono subtle" style="font-size:13px" data-cue="3">pickCanonical() in app/api/quotes/route.ts</div>
+      <div class="step" data-cue="3" data-x=".8"><span class="n">1</span><span>prefer <code>is_active</code></span></div>
+      <div class="step" data-cue="3" data-x="2.0"><span class="n">2</span><span>then lowest <code>cmc_rank</code></span></div>
+      <div class="step" data-cue="3" data-x="3.0"><span class="n">3</span><span>then highest <code>market_cap</code></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- FEEDBACK -->
+<section class="slide" id="feedback">
+  <div class="eyebrow" data-cue="0">API feedback for the CMC team</div>
+  <h1 data-cue="0">What we'd tell CoinMarketCap</h1>
+  <div class="row" style="margin-top:40px; align-items:stretch">
+    <div class="card fb" data-cue="1"><div class="ic" style="background:rgba(74,222,128,.12); color:var(--pos)">✓</div>
+      <h3>What it made possible</h3><p>A full dashboard (value, P&amp;L, sectors, concentration, correlation) from one free, keyless endpoint.</p></div>
+    <div class="card fb" data-cue="2"><div class="ic" style="background:rgba(251,113,133,.12); color:var(--danger)">!</div>
+      <h3>Where it got in the way</h3><p>Symbol lookups return every ticker collision. Worth a documented <span class="mono accent">is_active</span> / <span class="mono accent">cmc_rank</span> recipe in the quick-start.</p></div>
+    <div class="card fb" data-cue="3"><div class="ic" style="background:rgba(250,204,21,.12); color:var(--amber)">⏱</div>
+      <h3>Rate limits</h3><p>The shared keyless pool exhausts fast in an edit-and-refresh UI, which pushed us to incremental fetching + 429 backoff.</p></div>
+  </div>
+</section>
+
+<!-- OUTRO -->
+<section class="slide center" id="outro">
+  <div class="code" data-cue="0">
+    <div><span class="p">$</span> git clone https://github.com/nailer/portfolio-pulse</div>
+    <div><span class="p">$</span> npm install</div>
+    <div><span class="p">$</span> npm run dev <span class="p"> # → http://localhost:3000</span></div>
+  </div>
+  <div class="pill" style="margin-top:18px" data-cue="0" data-x="2"><span class="pos">✓</span> no API key needed</div>
+  <img class="logo" src="../public/logo.png" alt="" style="width:84px;height:84px;border-radius:20px;margin-top:44px" data-cue="1" />
+  <div class="title" style="font-size:52px; margin-top:16px" data-cue="1">Portfolio Pulse</div>
+  <div class="tag" style="font-size:17px" data-cue="1" data-x=".4">Thanks for watching</div>
+</section>
+
+<script>
+  // Fingerprint table: same sample data the app recording uses.
+  const FP = {
+    ETH: [0.5, 2.6, 6.1, 9.3, 14.2, 21.5],
+    SOL: [0.8, 3.9, 8.7, 4.1, 11.0, 18.3],
+  };
+  const body = document.getElementById("fp-body");
+  for (const [sym, v] of Object.entries(FP)) {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `<td class="sym">${sym}</td>` + v.map((x) => {
+      const a = Math.min(1, Math.abs(x) / 22);
+      return `<td class="v" style="background:rgba(94,234,212,${0.06 + a * 0.4})">${x > 0 ? "+" : ""}${x.toFixed(1)}%</td>`;
+    }).join("");
+    body.appendChild(tr);
+  }
+  const [a, b] = [FP.ETH, FP.SOL];
+  const dot = a.reduce((s, x, i) => s + x * b[i], 0);
+  const mag = (v) => Math.sqrt(v.reduce((s, x) => s + x * x, 0));
+  document.getElementById("fp-score").textContent = (dot / (mag(a) * mag(b))).toFixed(2);
+
+  // play(id, cueStarts): show one slide and schedule each element's entrance
+  // at the narration cue it belongs to (+ optional data-x offset in seconds).
+  window.play = (id, cues) => {
+    const slide = document.getElementById(id);
+    slide.classList.add("active");
+    slide.querySelectorAll("[data-cue]").forEach((el) => {
+      const cue = cues[Number(el.dataset.cue)] ?? 0;
+      const delay = Math.max(0, cue - 0.25 + Number(el.dataset.x ?? 0) + parseFloat(el.style.getPropertyValue("--x") || 0));
+      el.style.setProperty("--d", `${delay}s`);
+    });
+    requestAnimationFrame(() => slide.classList.add("play"));
+  };
+  const q = new URLSearchParams(location.search);
+  if (q.get("s")) window.play(q.get("s"), JSON.parse(q.get("cues") || "[0,2,4,6,8]"));
+</script>
+</body>
+</html>
